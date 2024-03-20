@@ -1,0 +1,50 @@
+version: "3.9"
+
+networks:
+  db: {}
+
+volumes:
+  db: {}
+
+services:
+  db:
+    image: mysql:8.3.0
+    command: --default-authentication-plugin=caching_sha2_password
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - db
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 2
+      start_period: 0s
+    logging:
+     driver: "json-file"
+     options:
+      max-size: "200k"
+      max-file: "10"
+      mode: non-blocking
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    ports:
+      - '8081:80'
+    networks:
+      - db
+    logging:
+     driver: "json-file"
+     options:
+      max-size: "200k"
+      max-file: "10"
+      mode: non-blocking
